@@ -9,7 +9,11 @@ from skimage import filters
 from skimage.color import rgb2gray
 
 
+def divotClassifier():
+    images = []
 
+    for img in images:
+        greenDetector()
 def greenDetector():
     rawImg = cv2.imread("pictures\Divot1.jpg")
     # divotDetectorGrayBin()
@@ -27,11 +31,21 @@ def greenDetector():
     start_time = time.perf_counter()
     maskedImg = color_thresh(rawImg)
     end_time = time.perf_counter()
-    # with np.set_printoptions(threshold=np.inf):
-    #     print(maskedImg[2000])
+
+    print(maskedImg)
+    unique, frequency = np.unique(maskedImg,return_counts=True)
+
+    print(unique, frequency)
+
     print("--- %s seconds ---" % (end_time - start_time))
     plt.imshow(maskedImg)
     plt.show()
+    classifed = False
+
+
+    result  = [classifed , unique, frequency]
+    return result
+
 
 def color_thresh(img):
     """
