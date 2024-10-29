@@ -8,23 +8,43 @@ from skimage import data
 from skimage import filters
 from skimage.color import rgb2gray
 
+import os
+
 
 def divotClassifier():
-    images = []
+    directory = 'pictures'
+    files = os.listdir(directory)
+    print(files)
+    newFiles = []
+    for f in files:
+        newFiles.append("pictures\\" + f)
+    print(newFiles)
 
-    for img in images:
-        greenDetector()
-def greenDetector():
-    rawImg = cv2.imread("pictures\Divot1.jpg")
+    divotClass = []
+    noDivotClass = []
+    for img in newFiles:
+        rawImg = cv2.imread(img)
+        classifier, unique, frequency = greenDetector(rawImg)
+
+        print(img,classifier, unique, frequency)
+        if classifier:
+            divotClass.append(img)
+        else:
+            noDivotClass.append(img)
+    print()
+    print(divotClass)
+    print(noDivotClass)
+def greenDetector(rawImg):
+    # rawImg = cv2.imread("pictures\Divot1.jpg")
     # divotDetectorGrayBin()
 
-    plt.imshow(rawImg)
-    plt.show()
+    # plt.imshow(rawImg)
+    # plt.show()
     # cv2.imshow("Raw Image", rawImg)
     # cv2.waitKey(0)
-    treshImg = gradient_thresh(rawImg)
-    plt.imshow(treshImg)
-    plt.show()
+    # treshImg = gradient_thresh(rawImg)
+    # plt.imshow(treshImg)
+    # plt.show()
     # cv2.imshow("Tresh Image", treshImg)
     # cv2.waitKey(0)
 
@@ -32,18 +52,33 @@ def greenDetector():
     maskedImg = color_thresh(rawImg)
     end_time = time.perf_counter()
 
-    print(maskedImg)
+    # print(maskedImg)
     unique, frequency = np.unique(maskedImg,return_counts=True)
 
-    print(unique, frequency)
+    # print(unique, frequency)
 
     print("--- %s seconds ---" % (end_time - start_time))
+
     plt.imshow(maskedImg)
     plt.show()
+
     classifed = False
 
+    # Simple Classifier based on count of brown pixels
+    # if frequency[1] > 1000:
+    #     classifed = True
 
-    result  = [classifed , unique, frequency]
+    # TODO: Add classifier based on the location of brown pixels, use mean and std deviation
+
+    xCoor, yCoor = np.where(maskedImg == 1)
+
+    stdDev = np.sqrt(np.std(xCoor)**2 + np.std(yCoor)**2)
+    print(stdDev)
+
+    if stdDev < 900 and frequency[1] > 400:
+        classifed = True
+
+    result = [classifed, unique, frequency]
     return result
 
 
@@ -183,4 +218,4 @@ def gradient_thresh(img, thresh_min=25, thresh_max=100):
 
 
 if __name__ == "__main__":
-    greenDetector()
+    divotClassifier()
