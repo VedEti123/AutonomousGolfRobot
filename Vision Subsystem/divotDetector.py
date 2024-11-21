@@ -60,8 +60,8 @@ def divotDetector(rawImg):
 
     print("--- %s seconds ---" % (end_time - start_time))
 
-    plt.imshow(maskedImg)
-    plt.show()
+    # plt.imshow(maskedImg)
+    # plt.show()
 
     classifed = False
 
