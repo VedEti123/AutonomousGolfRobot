@@ -49,7 +49,7 @@ def greenEdgeDetector(rawImg = None):
 
     rawImg = cv2.cvtColor(rawImg, cv2.COLOR_BGR2GRAY)
     print(rawImg)
-    lbpClassifier(rawImg)
+    # lbpClassifier(rawImg)
     edgeFound = lbpClassifier(rawImg)
 
     return edgeFound
@@ -111,7 +111,9 @@ def lbpClassifier(image):
     # Compare the texture features (e.g., using chi-squared distance)
     chi_squared_distance = 0.5 * np.sum(
         ((features_roi1 - features_roi2) ** 2) / (features_roi1 + features_roi2 + 1e-10))
-
+    print(f"Chi-squared distance between textures: {chi_squared_distance}")
+    if chi_squared_distance > 0.02:
+        return True
     # Plot the ROIs
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
@@ -121,7 +123,54 @@ def lbpClassifier(image):
     plt.imshow(roi2, cmap='gray')
     plt.title('ROI 2')
     plt.show()
+def colorGreenEdgeDetector(img):
+    """
+        Convert RGB to HSL and threshold to binary image using S channel
+        """
+    # 1. Convert the image from RGB to HSL
+    # 2. Apply threshold on S channel to get binary image
+    # Hint: threshold on H to remove green grass
+    blur = cv2.GaussianBlur(img, (5, 5), cv2.BORDER_DEFAULT)
+    # 1 - Convert image from RGB to HSL
+    hsl_img = cv2.cvtColor(blur, cv2.COLOR_BGR2HLS)
 
+    shape = hsl_img.shape
+    print(shape)
+    numPixels = shape[0] * shape[1]
+
+    # hue threshold with a range of +/- 10
+    rough_filter_hue = cv2.inRange(hsl_img[:, :, 0], 88, 108)
+
+    # saturation threshold with a range of +/- 10%
+    rough_filter_sat = cv2.inRange(hsl_img[:, :, 1], 54, 74)
+
+    # lightness threshold with a range of +/- 5%
+    rough_filter_light = cv2.inRange(hsl_img[:, :, 2], 48, 58)
+
+    # combine the three thresholds using bitwise AND
+    edge_filter = cv2.bitwise_and(rough_filter_hue, rough_filter_sat)
+    edge_filter = cv2.bitwise_and(edge_filter, rough_filter_light)
+
+    print(edge_filter)
+    # 3 - Dilate area a little to coincide with sobel output later down the pipeline
+    yw_mask = edge_filter / 255  # Convert 0-255 to 0-1
+
+    dilate_element = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+    maskedImg = cv2.dilate(yw_mask, dilate_element)
+    print(maskedImg)
+    ####
+    xCoor, yCoor = np.where(maskedImg == 1)
+    print(len(xCoor), numPixels)
+    if len(xCoor) < numPixels * 0.75:
+        print("Green Edge Detected")
+        return True
+    else:
+        return False
+    # return yw_mask
 if __name__ == "__main__":
     #greenClassifier()
-    greenEdgeDetector()
+    rawImg = cv2.imread("EdgePictures\edge1.jpg")
+    plt.imshow(rawImg)
+    plt.show()
+    # greenEdgeDetector(rawImg)
+    colorGreenEdgeDetector(rawImg)
