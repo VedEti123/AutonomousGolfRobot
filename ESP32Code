@@ -1,0 +1,199 @@
+/*
+ * This ESP32 code is created by esp32io.com
+ *
+ * This ESP32 code is released in the public domain
+ *
+ * For more detail (instruction and wiring diagram), visit https://esp32io.com/tutorials/esp32-dc-motor
+ */
+
+#define MC1_IN1  8 // ESP32 pin GPIO19 connected to the IN1 pin L298N
+#define MC1_IN2  9 // ESP32 pin GPIO18 connected to the IN2 pin L298N
+#define MC1_ENA  7 // ESP32 pin GPIO17 connected to the EN1 pin L298N
+
+#define MC2_IN1  10 // ESP32 pin GPIO19 connected to the IN1 pin L298N
+#define MC2_IN2  11 // ESP32 pin GPIO18 connected to the IN2 pin L298N
+#define MC2_ENA  12 // ESP32 pin GPIO17 connected to the EN1 pin L298N
+
+#define MC3_IN1  18 // ESP32 pin GPIO19 connected to the IN1 pin L298N
+#define MC3_IN2  19 // ESP32 pin GPIO18 connected to the IN2 pin L298N
+#define MC3_ENA  17 // ESP32 pin GPIO17 connected to the EN1 pin L298N
+
+#define MC4_IN1  20 // ESP32 pin GPIO19 connected to the IN1 pin L298N
+#define MC4_IN2  21 // ESP32 pin GPIO18 connected to the IN2 pin L298N
+#define MC4_ENA  22 // ESP32 pin GPIO17 connected to the EN1 pin L298N
+
+#define DivotDet  6 // ESP32 pin GPIO18 connected to the IN2 pin L298N
+#define GreenDet  5 // ESP32 pin GPIO17 connected to the EN1 pin L298N
+
+#define ENA_PIN 10 //PWM   
+#define IN1_PIN 9   
+#define IN2_PIN 8 
+
+
+// the setup function runs once when you press reset or power the board
+void setup() {
+  Serial.begin(115200);
+  // initialize digital pins as outputs.
+  pinMode(MC1_IN1, OUTPUT);
+  pinMode(MC1_IN2, OUTPUT);
+  pinMode(MC1_ENA, OUTPUT);
+
+  pinMode(MC2_IN1, OUTPUT);
+  pinMode(MC2_IN2, OUTPUT);
+  pinMode(MC2_ENA, OUTPUT);
+
+  pinMode(MC3_IN1, OUTPUT);
+  pinMode(MC3_IN2, OUTPUT);
+  pinMode(MC3_ENA, OUTPUT);
+
+  pinMode(MC4_IN1, OUTPUT);
+  pinMode(MC4_IN2, OUTPUT);
+  pinMode(MC4_ENA, OUTPUT);
+
+  pinMode(DivotDet, INPUT);
+  pinMode(GreenDet, INPUT);
+
+  Serial.println("Finished setting up all pins.");
+//  digitalWrite(MC1_IN1, HIGH);
+//  digitalWrite(MC1_IN2, LOW);
+//  digitalWrite(MC1_ENA, HIGH);
+  
+}
+
+void setForward(){
+  Serial.println("Setting motors to go forward.");
+  digitalWrite(MC1_IN1, HIGH);
+  digitalWrite(MC1_IN2, LOW);
+  digitalWrite(MC1_ENA, 32);
+
+  digitalWrite(MC2_IN1, HIGH);
+  digitalWrite(MC2_IN2, LOW);
+  digitalWrite(MC1_ENA, 32);
+
+  digitalWrite(MC3_IN1, HIGH);
+  digitalWrite(MC3_IN2, LOW);
+  digitalWrite(MC1_ENA, 32);
+
+  digitalWrite(MC4_IN1, HIGH);
+  digitalWrite(MC4_IN2, LOW);
+  digitalWrite(MC1_ENA, 32);
+}
+
+void setStop(){
+
+  Serial.println("Setting motors to stop.");
+  digitalWrite(MC1_IN1, LOW);
+  digitalWrite(MC1_IN2, LOW);
+
+  digitalWrite(MC2_IN1, LOW);
+  digitalWrite(MC2_IN2, LOW);
+
+  digitalWrite(MC3_IN1, LOW);
+  digitalWrite(MC3_IN2, LOW);
+
+  digitalWrite(MC4_IN1, LOW);
+  digitalWrite(MC4_IN2, LOW);
+}
+
+int pollGreen(){
+  Serial.println("Attempting read from RasPi.");
+
+  signalRec = digitalRead(GreenDet);
+
+  if (signalRec == HIGH) {
+    Serial.println("Green Found, rotating robot");
+    rotateRobot();
+    Serial.println("Green Found");
+  }
+
+  setForward();
+}
+
+int pollDivot(){
+    Serial.println("Attempting read from RasPi.");
+
+  signalRec = digitalRead(DivotDet);
+
+  if (signalRec == HIGH) {
+    // turn LED on
+    digitalWrite(ledPin, HIGH);
+    Serial.println("Divot Found");
+  }
+
+  setStop();
+
+  // Add logic to dispense marker - Should only be a digital write and delay 
+
+  Serial.println("Marker Dispensed");
+}
+
+int pollStart(){
+
+  // Ble logic 
+
+  setForward();
+  return 1;
+  
+}
+
+int pollReturn(){
+
+  // Ble logic
+
+  // Return logic -- more complicated, needs more functions
+  // Func 1: Rotate to get strongest IR reading
+  // If IR strength > threshold:
+  //    Stop robot, set status as docked
+  // Else:
+  //    Move forward for some time, (can be relative to how strong IR reading is)
+  //    Loop back to Func 1
+  
+}
+
+int rotateRobot(){
+  setStop();
+
+  int randTurn = random(100, 200);
+  
+  digitalWrite(MC1_IN1, HIGH);
+  digitalWrite(MC1_IN2, LOW);
+  digitalWrite(MC1_ENA, 32);
+
+  digitalWrite(MC2_IN1, HIGH);
+  digitalWrite(MC2_IN2, LOW);
+  digitalWrite(MC1_ENA, 32);
+
+  digitalWrite(MC3_IN1, LOW);
+  digitalWrite(MC3_IN2, HIGH);
+  digitalWrite(MC1_ENA, 32);
+
+  digitalWrite(MC4_IN1, LOW);
+  digitalWrite(MC4_IN2, HIGH);
+  digitalWrite(MC1_ENA, 32);
+
+  delay(randTurn);
+
+  setForward();
+
+  return 1;
+}
+
+// the loop function runs over and over again forever
+void loop() {
+
+  // Start to just test this out
+  setForward();
+
+  // More advanced logic
+  
+  pollStart();
+
+  pollReturn();
+
+  pollGreen();
+
+  pollDivot();
+  
+
+  delay(2000); 
+}
